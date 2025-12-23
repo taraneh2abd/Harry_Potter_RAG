@@ -32,8 +32,6 @@ RESET = "\033[0m"
 SEPARATOR = "=" * 90
 
 
-API_KEY = "sk-RrrmNQIbMVcfmg79VcqIcuzy84RqIRcNtONmHlBUZ1TcqH99"
-
 URL = "https://api.chatanywhere.tech/v1/chat/completions"
 
 
