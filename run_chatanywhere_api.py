@@ -1,4 +1,3 @@
-
 import requests
 import faiss
 import numpy as np
