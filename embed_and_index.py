@@ -1,5 +1,7 @@
 import faiss
 # provie a DS similarity search approach
+import re
+from typing import List
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import pickle
@@ -17,21 +19,46 @@ def load_pdf_text(pdf_path: str) -> str:
     return "\n".join(pages_text)
 
 
-def chunk_text(text, chunk_size=800, overlap=150):
+# sentence_aware_chunking
+def chunk_text(text: str, chunk_size: int = 800, overlap: int = 150) -> List[str]:
+    sentence_endings = r'(?<=[.!?])\s+'
+    sentences = re.split(sentence_endings, text)
+    
     chunks = []
-    start = 0
-    text_length = len(text)
-
-    while start < text_length:
-        end = start + chunk_size
-        chunk = text[start:end]
-        chunks.append(chunk.strip())
-        start = end - overlap
-        if start < 0:
-            start = 0
-
+    current_chunk = []
+    current_length = 0
+    
+    for sentence in sentences:
+        sentence = sentence.strip()
+        if not sentence:
+            continue
+            
+        sentence_length = len(sentence)
+        
+        if current_length + sentence_length <= chunk_size:
+            current_chunk.append(sentence)
+            current_length += sentence_length + 1  
+        else:
+            if current_chunk:
+                chunks.append(' '.join(current_chunk))
+            
+            overlap_sentences = []
+            overlap_length = 0
+            
+            for sent in reversed(current_chunk):
+                if overlap_length + len(sent) <= overlap:
+                    overlap_sentences.insert(0, sent)
+                    overlap_length += len(sent) + 1
+                else:
+                    break
+            
+            current_chunk = overlap_sentences + [sentence]
+            current_length = overlap_length + sentence_length
+    
+    if current_chunk:
+        chunks.append(' '.join(current_chunk))
+    
     return chunks
-
 
 def main():
     text = load_pdf_text("Harry Potter - Book 1 - The Sorcerers Stone.pdf")
